@@ -1,16 +1,22 @@
 const Card = require('../models/card')
-
-const VALIDATION_ERROR_CODE = 400
-const NOT_FOUND_ERROR_CODE = 404
-const DEFAULT_ERROR_CODE = 500
+const {
+  VALIDATION_ERROR_CODE,
+  NOT_FOUND_ERROR_CODE,
+  DEFAULT_ERROR_CODE,
+  NotFoundError,
+} = require('./errors')
 
 const handleErrors = (err, res) => {
   if (err.name === 'CastError') {
-    return res.status(NOT_FOUND_ERROR_CODE).send({ message: 'Карточка не найдена' })
+    return res.status(VALIDATION_ERROR_CODE).send({ message: err.message })
   }
 
   if (err.name === 'ValidationError') {
     return res.status(VALIDATION_ERROR_CODE).send({ message: `Некорректные данные: ${err.message}` })
+  }
+
+  if (err.name === 'NotFoundError') {
+    return res.status(NOT_FOUND_ERROR_CODE).send({ message: err.message })
   }
 
   return res.status(DEFAULT_ERROR_CODE).send({ message: 'Ошибка получения карточки' })
@@ -34,7 +40,13 @@ module.exports.createCard = (req, res) => {
 
 module.exports.deleteCard = (req, res) => {
   Card.findByIdAndDelete(req.params.cardId)
-    .then((card) => res.send({ card }))
+    .then((card) => {
+      if (!card) {
+        throw new NotFoundError('Карточка не найдена')
+      }
+
+      res.send({ card })
+    })
     .catch((err) => handleErrors(err, res))
 }
 
@@ -44,7 +56,13 @@ module.exports.likeCard = (req, res) => {
     { $addToSet: { likes: req.user._id } },
     { new: true },
   )
-    .then((card) => res.send({ card }))
+    .then((card) => {
+      if (!card) {
+        throw new NotFoundError('Карточка не найдена')
+      }
+
+      res.send({ card })
+    })
     .catch((err) => handleErrors(err, res))
 }
 
@@ -54,6 +72,12 @@ module.exports.dislikeCard = (req, res) => {
     { $pull: { likes: req.user._id } },
     { new: true },
   )
-    .then((card) => res.send({ card }))
+    .then((card) => {
+      if (!card) {
+        throw new NotFoundError('Карточка не найдена')
+      }
+
+      res.send({ card })
+    })
     .catch((err) => handleErrors(err, res))
 }
