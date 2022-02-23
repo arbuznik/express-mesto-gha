@@ -1,4 +1,5 @@
-[![Tests for sprint 13](https://github.com/${arbuznik}/${express-mesto-gha}/actions/workflows/tests-13-sprint.yml/badge.svg)](https://github.com/${arbuznik}/${express-mesto-gha}/actions/workflows/tests-13-sprint.yml)
+[![Tests for sprint 13](https://github.com/arbuznik/express-mesto-gha/actions/workflows/tests-13-sprint.yml/badge.svg)](https://github.com/arbuznik/express-mesto-gha/actions/workflows/tests-13-sprint.yml)
+
 # Проект Mesto фронтенд + бэкенд
 
 ## Запуск проекта
