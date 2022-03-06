@@ -1,26 +1,8 @@
 const Card = require('../models/card')
+
 const {
-  VALIDATION_ERROR_CODE,
-  NOT_FOUND_ERROR_CODE,
-  DEFAULT_ERROR_CODE,
-  NotFoundError,
+  NotFoundError, handleErrors,
 } = require('./errors')
-
-const handleErrors = (err, res) => {
-  if (err.name === 'CastError') {
-    return res.status(VALIDATION_ERROR_CODE).send({ message: err.message })
-  }
-
-  if (err.name === 'ValidationError') {
-    return res.status(VALIDATION_ERROR_CODE).send({ message: `Некорректные данные: ${err.message}` })
-  }
-
-  if (err.name === 'NotFoundError') {
-    return res.status(NOT_FOUND_ERROR_CODE).send({ message: err.message })
-  }
-
-  return res.status(DEFAULT_ERROR_CODE).send({ message: 'Ошибка получения карточки' })
-}
 
 module.exports.getCards = (req, res) => {
   Card.find({})
@@ -32,7 +14,7 @@ module.exports.createCard = (req, res) => {
   const { name, link } = req.body
 
   Card.create({
-    name, link, owner: req.user._id, createdAt: Date.now(),
+    name, link, owner: req.user._id,
   })
     .then((card) => res.send({ card }))
     .catch((err) => handleErrors(err, res))
