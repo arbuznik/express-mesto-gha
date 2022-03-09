@@ -1,4 +1,7 @@
 const User = require('../models/user')
+const bcrypt = require('bcryptjs')
+const jwt = require('jsonwebtoken')
+
 const {
   NotFoundError, handleErrors
 } = require('./errors')
@@ -21,14 +24,30 @@ module.exports.getUser = (req, res) => {
     .catch((err) => handleErrors(err, res))
 }
 
-module.exports.createUser = (req, res) => {
-  const { name, about, avatar } = req.body
+module.exports.getMyself = (req, res) => {
+  User.findById(req.user._id)
+    .then((user) => {
+      if (!user) {
+        throw new NotFoundError('Пользователь не найден')
+      }
 
-  User.create({ name, about, avatar })
-    .then((user) => res.send({ user }))
+      res.send({ user })
+    })
     .catch((err) => handleErrors(err, res))
 }
 
+module.exports.createUser = (req, res) => {
+  const { name, about, avatar, email, password } = req.body
+
+  return bcrypt.hash(password, 10)
+    .then((hash) => User.create({ name, about, avatar, email, password: hash }))
+    .then((user) => res.send({ user }))
+    .catch((err) => {
+      console.log(err)
+      handleErrors(err, res)
+    })
+}
+// TODO: JWT token send by http
 module.exports.updateProfile = (req, res) => {
   const { name, about } = req.body
 
@@ -51,4 +70,20 @@ module.exports.updateAvatar = (req, res) => {
   )
     .then((user) => res.send({ user }))
     .catch((err) => handleErrors(err, res))
+}
+
+module.exports.login = (req, res) => {
+  const { email, password } = req.body
+  console.log(email,password)
+  return User.findUserByCredentials(email, password)
+    .then((user) => {
+      console.log(user)
+      const token = jwt.sign(
+        { _id: user._id },
+        'key',
+        { expiresIn: '7d'},
+        )
+      res.send({token})
+    })
+    .catch(err => handleErrors(err, res))
 }

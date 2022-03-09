@@ -4,6 +4,8 @@ const bodyParser = require('body-parser')
 
 const users = require('./routes/users')
 const cards = require('./routes/cards')
+const { login, createUser } = require("./controllers/users");
+const { auth } = require("./middlewares/auth");
 
 const { PORT = 3000 } = process.env
 const app = express()
@@ -11,16 +13,15 @@ const app = express()
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: true }))
 
-app.use((req, res, next) => {
-  req.user = {
-    _id: '62151558f3811ee0e2758856',
-  }
+app.post('/signin', login)
+app.post('/signup', createUser)
 
-  next()
-})
+app.use(auth)
 
 app.use('/users', users)
 app.use('/cards', cards)
+
+
 
 app.use((req, res) => res.status(404).send({ message: 'Страница не найдена' }))
 
