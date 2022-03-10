@@ -1,6 +1,7 @@
 const express = require('express')
 const mongoose = require('mongoose')
 const bodyParser = require('body-parser')
+const cookieParser = require('cookie-parser')
 
 const users = require('./routes/users')
 const cards = require('./routes/cards')
@@ -12,6 +13,8 @@ const app = express()
 
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: true }))
+
+app.use(cookieParser())
 
 app.post('/signin', login)
 app.post('/signup', createUser)

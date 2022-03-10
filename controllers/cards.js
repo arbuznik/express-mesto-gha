@@ -1,7 +1,7 @@
 const Card = require('../models/card')
 
 const {
-  NotFoundError, handleErrors,
+  NotFoundError, handleErrors, NotAnOwnerError,
 } = require('./errors')
 
 module.exports.getCards = (req, res) => {
@@ -21,13 +21,20 @@ module.exports.createCard = (req, res) => {
 }
 
 module.exports.deleteCard = (req, res) => {
-  Card.findByIdAndDelete(req.params.cardId)
+  Card.findById(req.params.cardId)
     .then((card) => {
       if (!card) {
         throw new NotFoundError('Карточка не найдена')
       }
 
-      res.send({ card })
+      if (card.owner.toString() === req.user._id) {
+        Card.findByIdAndDelete(req.params.cardId)
+          .then((card) => {
+            res.send({ card })
+          })
+      } else {
+        throw new NotAnOwnerError()
+      }
     })
     .catch((err) => handleErrors(err, res))
 }

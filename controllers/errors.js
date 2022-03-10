@@ -25,6 +25,13 @@ module.exports.AuthFailedError = class AuthFailedError extends Error {
   }
 }
 
+module.exports.NotAnOwnerError = class NotAnOwner extends Error {
+  constructor(message) {
+    super(message)
+    this.name = 'NotAnOwner'
+  }
+}
+
 module.exports.handleErrors = (err, res) => {
   console.log(err.name)
   if (err.name === 'CastError') {
@@ -45,6 +52,10 @@ module.exports.handleErrors = (err, res) => {
 
   if (err.name === 'AuthFailedError') {
     return res.status(AUTH_ATTEMPT_ERROR_CODE).send({ message: 'Auth failed' })
+  }
+
+  if (err.name === 'NotAnOwner') {
+    return res.status(AUTH_REQUIRED_ERROR_CODE).send({ message: 'Forbidden: not an owner' })
   }
 
   return res.status(DEFAULT_ERROR_CODE).send({ message: err.message })

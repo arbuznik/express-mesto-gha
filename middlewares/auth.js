@@ -2,13 +2,12 @@ const jwt = require('jsonwebtoken')
 const { handleErrors, AuthRequiredError, AuthFailedError } = require("../controllers/errors");
 
 module.exports.auth = (req, res, next) => {
-  const { authorization } = req.headers
+  const token = req.cookies.jwt
 
-  if (!authorization || !authorization.startsWith('Bearer ')) {
+  if (!token) {
     return handleErrors(new AuthRequiredError, res)
   }
-
-  const token = authorization.replace('Bearer: ', '')
+  console.log('cookie', token)
   let payload;
 
   try {

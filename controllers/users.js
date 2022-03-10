@@ -13,19 +13,8 @@ module.exports.getUsers = (req, res) => {
 }
 
 module.exports.getUser = (req, res) => {
-  User.findById(req.params.id)
-    .then((user) => {
-      if (!user) {
-        throw new NotFoundError('Пользователь не найден')
-      }
-
-      res.send({ user })
-    })
-    .catch((err) => handleErrors(err, res))
-}
-
-module.exports.getMyself = (req, res) => {
-  User.findById(req.user._id)
+  const userId = req.params.id === 'me' ? req.user._id : req.params.id;
+  User.findById(userId)
     .then((user) => {
       if (!user) {
         throw new NotFoundError('Пользователь не найден')
@@ -43,11 +32,10 @@ module.exports.createUser = (req, res) => {
     .then((hash) => User.create({ name, about, avatar, email, password: hash }))
     .then((user) => res.send({ user }))
     .catch((err) => {
-      console.log(err)
       handleErrors(err, res)
     })
 }
-// TODO: JWT token send by http
+
 module.exports.updateProfile = (req, res) => {
   const { name, about } = req.body
 
@@ -83,7 +71,10 @@ module.exports.login = (req, res) => {
         'key',
         { expiresIn: '7d'},
         )
-      res.send({token})
+      res.cookie('jwt', token, {
+        maxAge: 3600000,
+        httpOnly: true,
+      }).end()
     })
     .catch(err => handleErrors(err, res))
 }
