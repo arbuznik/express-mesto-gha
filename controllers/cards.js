@@ -1,8 +1,8 @@
 const Card = require('../models/card')
 
 const {
-  NotFoundError, handleErrors, NotAnOwnerError,
-} = require('./errors')
+  NotFoundError, handleErrors, AuthRequiredError,
+} = require('../middlewares/errors')
 
 module.exports.getCards = (req, res) => {
   Card.find({})
@@ -20,7 +20,7 @@ module.exports.createCard = (req, res) => {
     .catch((err) => handleErrors(err, res))
 }
 
-module.exports.deleteCard = (req, res) => {
+module.exports.deleteCard = (req, res, next) => {
   Card.findById(req.params.cardId)
     .then((card) => {
       if (!card) {
@@ -33,13 +33,13 @@ module.exports.deleteCard = (req, res) => {
             res.send({ card })
           })
       } else {
-        throw new NotAnOwnerError()
+        throw new AuthRequiredError('Forbidden: not an owner')
       }
     })
-    .catch((err) => handleErrors(err, res))
+    .catch(next)
 }
 
-module.exports.likeCard = (req, res) => {
+module.exports.likeCard = (req, res, next) => {
   Card.findByIdAndUpdate(
     req.params.cardId,
     { $addToSet: { likes: req.user._id } },
@@ -52,10 +52,10 @@ module.exports.likeCard = (req, res) => {
 
       res.send({ card })
     })
-    .catch((err) => handleErrors(err, res))
+    .catch(next)
 }
 
-module.exports.dislikeCard = (req, res) => {
+module.exports.dislikeCard = (req, res, next) => {
   Card.findByIdAndUpdate(
     req.params.cardId,
     { $pull: { likes: req.user._id } },
@@ -68,5 +68,5 @@ module.exports.dislikeCard = (req, res) => {
 
       res.send({ card })
     })
-    .catch((err) => handleErrors(err, res))
+    .catch(next)
 }

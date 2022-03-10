@@ -1,25 +1,22 @@
 const jwt = require('jsonwebtoken')
-const { handleErrors, AuthRequiredError, AuthFailedError } = require("../controllers/errors");
+const {AuthRequiredError, AuthFailedError } = require("./errors");
 
 module.exports.auth = (req, res, next) => {
   const token = req.cookies.jwt
 
   if (!token) {
-    return handleErrors(new AuthRequiredError, res)
+    next(new AuthRequiredError('Auth required'))
   }
-  console.log('cookie', token)
+
   let payload;
 
   try {
     payload = jwt.verify(token, 'key')
   } catch(err) {
-    return handleErrors(new AuthFailedError, res)
+    next(new AuthFailedError('Auth failed'))
   }
 
   req.user = payload
 
   next()
 }
-
-// TODO: email viladator
-// TODO: jwt secret key generation

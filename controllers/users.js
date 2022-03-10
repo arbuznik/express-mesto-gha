@@ -1,10 +1,11 @@
 const User = require('../models/user')
 const bcrypt = require('bcryptjs')
 const jwt = require('jsonwebtoken')
+const validator = require('validator')
 
 const {
-  NotFoundError, handleErrors
-} = require('./errors')
+  NotFoundError, handleErrors, AuthFailedError
+} = require('../middlewares/errors')
 
 module.exports.getUsers = (req, res) => {
   User.find({})
@@ -12,7 +13,7 @@ module.exports.getUsers = (req, res) => {
     .catch((err) => handleErrors(err, res))
 }
 
-module.exports.getUser = (req, res) => {
+module.exports.getUser = (req, res, next) => {
   const userId = req.params.id === 'me' ? req.user._id : req.params.id;
   User.findById(userId)
     .then((user) => {
@@ -22,21 +23,23 @@ module.exports.getUser = (req, res) => {
 
       res.send({ user })
     })
-    .catch((err) => handleErrors(err, res))
+    .catch(next)
 }
 
-module.exports.createUser = (req, res) => {
+module.exports.createUser = (req, res, next) => {
   const { name, about, avatar, email, password } = req.body
+
+  if (!validator.isEmail(email)) {
+    throw new AuthFailedError('Email is not valid')
+  }
 
   return bcrypt.hash(password, 10)
     .then((hash) => User.create({ name, about, avatar, email, password: hash }))
     .then((user) => res.send({ user }))
-    .catch((err) => {
-      handleErrors(err, res)
-    })
+    .catch(next)
 }
 
-module.exports.updateProfile = (req, res) => {
+module.exports.updateProfile = (req, res, next) => {
   const { name, about } = req.body
 
   User.findByIdAndUpdate(
@@ -45,10 +48,10 @@ module.exports.updateProfile = (req, res) => {
     { new: true, runValidators: true },
   )
     .then((user) => res.send({ user }))
-    .catch((err) => handleErrors(err, res))
+    .catch(next)
 }
 
-module.exports.updateAvatar = (req, res) => {
+module.exports.updateAvatar = (req, res, next) => {
   const { avatar } = req.body
 
   User.findByIdAndUpdate(
@@ -57,15 +60,14 @@ module.exports.updateAvatar = (req, res) => {
     { new: true, runValidators: true },
   )
     .then((user) => res.send({ user }))
-    .catch((err) => handleErrors(err, res))
+    .catch(next)
 }
 
-module.exports.login = (req, res) => {
+module.exports.login = (req, res, next) => {
   const { email, password } = req.body
-  console.log(email,password)
+
   return User.findUserByCredentials(email, password)
     .then((user) => {
-      console.log(user)
       const token = jwt.sign(
         { _id: user._id },
         'key',
@@ -76,5 +78,5 @@ module.exports.login = (req, res) => {
         httpOnly: true,
       }).end()
     })
-    .catch(err => handleErrors(err, res))
+    .catch(next)
 }
