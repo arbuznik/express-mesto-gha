@@ -1,16 +1,15 @@
 const User = require('../models/user')
 const bcrypt = require('bcryptjs')
 const jwt = require('jsonwebtoken')
-const validator = require('validator')
 
 const {
-  NotFoundError, handleErrors, AuthFailedError
+  NotFoundError
 } = require('../middlewares/errors')
 
 module.exports.getUsers = (req, res) => {
   User.find({})
     .then((users) => res.send({ users }))
-    .catch((err) => handleErrors(err, res))
+    .catch(next)
 }
 
 module.exports.getUser = (req, res, next) => {
@@ -28,10 +27,6 @@ module.exports.getUser = (req, res, next) => {
 
 module.exports.createUser = (req, res, next) => {
   const { name, about, avatar, email, password } = req.body
-
-  if (!validator.isEmail(email)) {
-    throw new AuthFailedError('Email is not valid')
-  }
 
   return bcrypt.hash(password, 10)
     .then((hash) => User.create({ name, about, avatar, email, password: hash }))

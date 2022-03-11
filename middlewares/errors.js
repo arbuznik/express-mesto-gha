@@ -23,7 +23,7 @@ module.exports.AuthFailedError = class AuthFailedError extends Error {
 }
 
 module.exports.handleErrors = (err, req, res, next) => {
-  console.log(err)
+  console.log('handleerror:', err)
   if (err.name === 'CastError') {
     return res.status(400).send({ message: err.message })
   }
