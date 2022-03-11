@@ -1,23 +1,21 @@
 const Card = require('../models/card')
+const { NotFoundError } = require('../middlewares/errors/NotFoundError')
+const { AuthRequiredError } = require('../middlewares/errors/AuthRequiredError')
 
-const {
-  NotFoundError, handleErrors, AuthRequiredError,
-} = require('../middlewares/errors')
-
-module.exports.getCards = (req, res) => {
+module.exports.getCards = (req, res, next) => {
   Card.find({})
     .then((cards) => res.send({ cards }))
-    .catch((err) => handleErrors(err, res))
+    .catch(next)
 }
 
-module.exports.createCard = (req, res) => {
+module.exports.createCard = (req, res, next) => {
   const { name, link } = req.body
 
   Card.create({
     name, link, owner: req.user._id,
   })
     .then((card) => res.send({ card }))
-    .catch((err) => handleErrors(err, res))
+    .catch(next)
 }
 
 module.exports.deleteCard = (req, res, next) => {
@@ -29,8 +27,8 @@ module.exports.deleteCard = (req, res, next) => {
 
       if (card.owner.toString() === req.user._id) {
         Card.findByIdAndDelete(req.params.cardId)
-          .then((card) => {
-            res.send({ card })
+          .then((cardItem) => {
+            res.send({ cardItem })
           })
       } else {
         throw new AuthRequiredError('Forbidden: not an owner')

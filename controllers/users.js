@@ -1,19 +1,16 @@
-const User = require('../models/user')
 const bcrypt = require('bcryptjs')
 const jwt = require('jsonwebtoken')
+const User = require('../models/user')
+const { NotFoundError } = require('../middlewares/errors/NotFoundError')
 
-const {
-  NotFoundError
-} = require('../middlewares/errors')
-
-module.exports.getUsers = (req, res) => {
+module.exports.getUsers = (req, res, next) => {
   User.find({})
     .then((users) => res.send({ users }))
     .catch(next)
 }
 
 module.exports.getUser = (req, res, next) => {
-  const userId = req.params.id === 'me' ? req.user._id : req.params.id;
+  const userId = req.params.id === 'me' ? req.user._id : req.params.id
   User.findById(userId)
     .then((user) => {
       if (!user) {
@@ -26,10 +23,14 @@ module.exports.getUser = (req, res, next) => {
 }
 
 module.exports.createUser = (req, res, next) => {
-  const { name, about, avatar, email, password } = req.body
+  const {
+    name, about, avatar, email, password,
+  } = req.body
 
   return bcrypt.hash(password, 10)
-    .then((hash) => User.create({ name, about, avatar, email, password: hash }))
+    .then((hash) => User.create({
+      name, about, avatar, email, password: hash,
+    }))
     .then((user) => res.send({ user }))
     .catch(next)
 }
@@ -66,8 +67,8 @@ module.exports.login = (req, res, next) => {
       const token = jwt.sign(
         { _id: user._id },
         'key',
-        { expiresIn: '7d'},
-        )
+        { expiresIn: '7d' },
+      )
       res.cookie('jwt', token, {
         maxAge: 3600000,
         httpOnly: true,

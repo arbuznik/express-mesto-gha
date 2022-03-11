@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken')
-const {AuthRequiredError, AuthFailedError } = require("./errors");
+const { AuthRequiredError } = require('./errors/AuthRequiredError')
+const { AuthFailedError } = require('./errors/AuthFailedError')
 
 module.exports.auth = (req, res, next) => {
   const token = req.cookies.jwt
@@ -8,11 +9,11 @@ module.exports.auth = (req, res, next) => {
     next(new AuthRequiredError('Auth required'))
   }
 
-  let payload;
+  let payload
 
   try {
     payload = jwt.verify(token, 'key')
-  } catch(err) {
+  } catch (err) {
     next(new AuthFailedError('Auth failed'))
   }
 
