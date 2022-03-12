@@ -9,14 +9,28 @@ cards.get('/', getCards)
 cards.post('/', celebrate({
   body: Joi.object().keys({
     name: Joi.string().min(2).max(30).required(),
-    link: Joi.string().email().required(),
+    link: Joi.string().required().pattern(
+      /^(https?:\/\/)(www\.)?[-a-zA-Z0-9@:%._+~#=]+\.[a-zA-Z0-9]+\b([-a-zA-Z0-9-._~:/?#[\]@!$&'()*+,;=]*)/,
+    ),
   }),
 }), createCard)
 
-cards.delete('/:cardId', deleteCard)
+cards.delete('/:cardId', celebrate({
+  params: Joi.object().keys({
+    cardId: Joi.string().length(24).hex().required(),
+  }),
+}), deleteCard)
 
-cards.put('/:cardId/likes', likeCard)
+cards.put('/:cardId/likes', celebrate({
+  params: Joi.object().keys({
+    cardId: Joi.string().length(24).hex().required(),
+  }),
+}), likeCard)
 
-cards.delete('/:cardId/likes', dislikeCard)
+cards.delete('/:cardId/likes', celebrate({
+  params: Joi.object().keys({
+    cardId: Joi.string().length(24).hex().required(),
+  }),
+}), dislikeCard)
 
 module.exports = cards

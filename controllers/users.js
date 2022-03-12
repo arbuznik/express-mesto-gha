@@ -2,6 +2,7 @@ const bcrypt = require('bcryptjs')
 const jwt = require('jsonwebtoken')
 const User = require('../models/user')
 const { NotFoundError } = require('../middlewares/errors/NotFoundError')
+const { ConflictError } = require('../middlewares/errors/ConflictError')
 
 module.exports.getUsers = (req, res, next) => {
   User.find({})
@@ -10,8 +11,19 @@ module.exports.getUsers = (req, res, next) => {
 }
 
 module.exports.getUser = (req, res, next) => {
-  const userId = req.params.id === 'me' ? req.user._id : req.params.id
-  User.findById(userId)
+  User.findById(req.params.id)
+    .then((user) => {
+      if (!user) {
+        throw new NotFoundError('Пользователь не найден')
+      }
+
+      res.send({ user })
+    })
+    .catch(next)
+}
+
+module.exports.getCurrentUser = (req, res, next) => {
+  User.findById(req.user._id)
     .then((user) => {
       if (!user) {
         throw new NotFoundError('Пользователь не найден')
@@ -31,8 +43,18 @@ module.exports.createUser = (req, res, next) => {
     .then((hash) => User.create({
       name, about, avatar, email, password: hash,
     }))
-    .then((user) => res.send({ user }))
-    .catch(next)
+    .then(() => res.status(200).send({
+      data: {
+        name, about, avatar, email,
+      },
+    }))
+    .catch((error) => {
+      if (error.code === 11000) {
+        next(new ConflictError('Email already exists'))
+      }
+
+      next(error)
+    })
 }
 
 module.exports.updateProfile = (req, res, next) => {
