@@ -3,6 +3,7 @@ const jwt = require('jsonwebtoken')
 const User = require('../models/user')
 const { NotFoundError } = require('../middlewares/errors/NotFoundError')
 const { ConflictError } = require('../middlewares/errors/ConflictError')
+const { ValidationError } = require("../middlewares/errors/ValidationError");
 
 module.exports.getUsers = (req, res, next) => {
   User.find({})
@@ -51,9 +52,11 @@ module.exports.createUser = (req, res, next) => {
     .catch((error) => {
       if (error.code === 11000) {
         next(new ConflictError('Email already exists'))
+      } else if (error.name === 'ValidationError') {
+        next(new ValidationError('Validation Error'))
+      } else {
+        next(error)
       }
-
-      next(error)
     })
 }
 
@@ -66,7 +69,13 @@ module.exports.updateProfile = (req, res, next) => {
     { new: true, runValidators: true },
   )
     .then((user) => res.send({ user }))
-    .catch(next)
+    .catch((err) => {
+      if (err.name === 'ValidationError') {
+        next(new ValidationError('Validation Error'))
+      } else {
+        next(err)
+      }
+    })
 }
 
 module.exports.updateAvatar = (req, res, next) => {
@@ -78,7 +87,13 @@ module.exports.updateAvatar = (req, res, next) => {
     { new: true, runValidators: true },
   )
     .then((user) => res.send({ user }))
-    .catch(next)
+    .catch((err) => {
+      if (err.name === 'ValidationError') {
+        next(new ValidationError('Validation Error'))
+      } else {
+        next(err)
+      }
+    })
 }
 
 module.exports.login = (req, res, next) => {
