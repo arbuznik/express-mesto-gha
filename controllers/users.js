@@ -3,7 +3,7 @@ const jwt = require('jsonwebtoken')
 const User = require('../models/user')
 const { NotFoundError } = require('../middlewares/errors/NotFoundError')
 const { ConflictError } = require('../middlewares/errors/ConflictError')
-const { ValidationError } = require("../middlewares/errors/ValidationError");
+const { ValidationError } = require('../middlewares/errors/ValidationError')
 
 module.exports.getUsers = (req, res, next) => {
   User.find({})

@@ -1,7 +1,7 @@
 const Card = require('../models/card')
 const { NotFoundError } = require('../middlewares/errors/NotFoundError')
 const { AuthRequiredError } = require('../middlewares/errors/AuthRequiredError')
-const { ValidationError } = require("../middlewares/errors/ValidationError");
+const { ValidationError } = require('../middlewares/errors/ValidationError')
 
 module.exports.getCards = (req, res, next) => {
   Card.find({})
@@ -18,7 +18,7 @@ module.exports.createCard = (req, res, next) => {
     .then((card) => res.send({ card }))
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        next (new ValidationError('Validation Error'))
+        next(new ValidationError('Validation Error'))
       } else {
         next(err)
       }
